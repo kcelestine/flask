@@ -11,3 +11,8 @@ variable "subnet_az_1b" {
   type    = string
   default = "us-east-1b"
 }
+
+variable "s3_flow_logs" { type = string }
+
+# variable "nat_gateway_public" { type = string }
+# variable "nat_gateway_private" { type = string }

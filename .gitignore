@@ -39,6 +39,3 @@ terraform.rc
 inventory.ini
 .DS_Store
 
-modules/vpc/.terraform/*
-modules/vpc/terraform.tfstate
-modules/vpc/terraform.tfstate.backup

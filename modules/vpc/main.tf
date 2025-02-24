@@ -41,73 +41,65 @@ resource "aws_subnet" "private" {
 
 
 
-# resource "aws_internet_gateway" "this" {
-#   vpc_id = aws_vpc.this.id
+resource "aws_internet_gateway" "this" {
+  vpc_id = aws_vpc.this.id
 
-#   tags = {
-#     Name = var.public_tag
-#   }
-# }
+  tags = {
+    Name = var.public_tag
+  }
+}
+
+resource "aws_eip" "public" {
+    for_each = aws_subnet.public
+    domain = "vpc"
+    depends_on = [aws_internet_gateway.this]
+}
+
+resource "aws_nat_gateway" "this" {
+  for_each      = aws_subnet.private
+  subnet_id     = aws_subnet.private[each.key].id
+  allocation_id = aws_eip.public[each.key].id
+}
 
 
-# resource "aws_route_table" "public" {
-#   vpc_id = aws_vpc.this.id
+resource "aws_route_table" "private" {
+    for_each          = aws_nat_gateway.this
+    vpc_id            = aws_vpc.this.id
 
-#   route {
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_internet_gateway.this.id
-#   }
+    route {
+        cidr_block      = "0.0.0.0/0"
+        nat_gateway_id  = aws_nat_gateway.this[each.key].id
+    }
 
-#   tags = {
-#     Name = var.public_tag
-#   }
-# }
+    tags = {
+        Name            = "private-${each.key}"
+    }
+}
 
-# resource "aws_route_table" "private_1a" {
-#   vpc_id = aws_vpc.this.id
+resource "aws_route_table_association" "private" {
+    for_each       = aws_nat_gateway.this
+    subnet_id      = aws_subnet.private[each.key].id
+    route_table_id = aws_route_table.private[each.key].id
+}
 
-#   route {
-#     cidr_block     = "0.0.0.0/0"
-#     nat_gateway_id = aws_nat_gateway.public_1a.id
-#   }
+resource "aws_route_table" "public" {
+    vpc_id = aws_vpc.this.id
 
-#   tags = {
-#     Name = var.private_tag
-#   }
-# }
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.this.id
+    }
 
-# resource "aws_route_table" "private_1b" {
-#   vpc_id = aws_vpc.this.id
+    tags = {
+        Name = var.public_tag
+    }
+}
 
-#   route {
-#     cidr_block     = "0.0.0.0/0"
-#     nat_gateway_id = aws_nat_gateway.public_1b.id
-#   }
-
-#   tags = {
-#     Name = var.private_tag
-#   }
-# }
-
-# # resource "aws_route_table_association" "public_1a" {
-# #   subnet_id      = aws_subnet.public_us_east_1a.id
-# #   route_table_id = aws_route_table.public.id
-# # }
-
-# # resource "aws_route_table_association" "public_1b" {
-# #   subnet_id      = aws_subnet.public_us_east_1b.id
-# #   route_table_id = aws_route_table.public.id
-# # }
-
-# resource "aws_route_table_association" "private_1a" {
-#   subnet_id      = aws_subnet.public_us_east_1a.id
-#   route_table_id = aws_route_table.private_1a.id
-# }
-
-# resource "aws_route_table_association" "private_1b" {
-#   subnet_id      = aws_subnet.public_us_east_1b.id
-#   route_table_id = aws_route_table.private_1b.id
-# }
+resource "aws_route_table_association" "public" {
+    for_each       = aws_subnet.public
+    subnet_id      = aws_subnet.public[each.key].id
+    route_table_id = aws_route_table.public.id
+}
 
 
 # # ### VPC Flow Logs

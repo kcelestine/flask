@@ -57,16 +57,16 @@
 # # }s
 
 
-# resource "aws_flow_log" "this" {
-#   log_destination      = aws_s3_bucket.vpc_flow_log.arn
-#   log_destination_type = "s3"
-#   traffic_type         = "ALL"
-#   vpc_id               = aws_vpc.this.id
-# }
+resource "aws_flow_log" "this" {
+  log_destination      = aws_s3_bucket.vpc_flow_log.arn
+  log_destination_type = "s3"
+  traffic_type         = "ALL"
+  vpc_id               = module.vpc.vpc_id
+}
 
-# resource "aws_s3_bucket" "vpc_flow_log" {
-#   bucket = var.s3_flow_logs
+resource "aws_s3_bucket" "vpc_flow_log" {
+  bucket = var.s3_flow_logs
 
-#   force_destroy = true
-# }
+  force_destroy = true
+}
 

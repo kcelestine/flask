@@ -9,3 +9,9 @@ module flask-vpc {
 module flask-ec2 {
     source = "./modules/ec2"
 }
+
+module flask-nat-gateway {
+    source = "./modules/nat-gateway"
+    public_tag  = var.public_tag
+    private_tag = var.private_tag
+}

@@ -6,6 +6,27 @@ resource "aws_vpc" "this" {
   }
 }
 
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+resource "aws_subnet" "public" {
+#for_each = { for idx, az in slice(data.aws_availability_zones.available.names, 0, length(data.aws_availability_zones.available.names)) : az => idx }
+    for_each = { for idx, az in slice(data.aws_availability_zones.available.names, 0, var.num_azs) : az => idx }
+
+    vpc_id                  = aws_vpc.this.id
+    cidr_block              = cidrsubnet(var.vpc_cidr, 8, each.value) # Allocates a /24 subnet per AZ
+    availability_zone       = each.key
+    map_public_ip_on_launch = true
+
+    depends_on = [ aws_vpc.this ]
+    
+    tags = {
+        Name = "public-${each.key}"
+    }
+
+}
+
 # resource "aws_subnet" "public_us_east_1a" {
 #   vpc_id                  = aws_vpc.this.id
 #   cidr_block              = "10.0.1.0/24"
@@ -173,21 +194,19 @@ resource "aws_vpc" "this" {
 # #   ]
 # # }
 # # EOF
-# # }
-
-# permanently delete
+# # }s
 
 
-resource "aws_flow_log" "this" {
-  log_destination      = aws_s3_bucket.vpc_flow_log.arn
-  log_destination_type = "s3"
-  traffic_type         = "ALL"
-  vpc_id               = aws_vpc.this.id
-}
+# resource "aws_flow_log" "this" {
+#   log_destination      = aws_s3_bucket.vpc_flow_log.arn
+#   log_destination_type = "s3"
+#   traffic_type         = "ALL"
+#   vpc_id               = aws_vpc.this.id
+# }
 
-resource "aws_s3_bucket" "vpc_flow_log" {
-  bucket = var.s3_flow_logs
+# resource "aws_s3_bucket" "vpc_flow_log" {
+#   bucket = var.s3_flow_logs
 
-  force_destroy = true
-}
+#   force_destroy = true
+# }
 

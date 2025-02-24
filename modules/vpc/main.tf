@@ -20,54 +20,26 @@ resource "aws_subnet" "public" {
     map_public_ip_on_launch = true
 
     depends_on = [ aws_vpc.this ]
-    
+
     tags = {
         Name = "public-${each.key}"
     }
 
 }
 
-# resource "aws_subnet" "public_us_east_1a" {
-#   vpc_id                  = aws_vpc.this.id
-#   cidr_block              = "10.0.1.0/24"
-#   availability_zone       = var.subnet_az_1a
-#   map_public_ip_on_launch = true
+resource "aws_subnet" "private" {
+    for_each = { for idx, az in slice(data.aws_availability_zones.available.names, 0, var.num_azs) : az => idx }
 
-#   tags = {
-#     Name = var.public_tag
-#   }
-# }
+    vpc_id            = aws_vpc.this.id
+    cidr_block        = cidrsubnet(var.vpc_cidr, 8, each.value + var.num_azs) # Different /24 subnet range for private
+    availability_zone = each.key
 
-# resource "aws_subnet" "public_us_east_1b" {
-#   vpc_id                  = aws_vpc.this.id
-#   cidr_block              = "10.0.3.0/24"
-#   availability_zone       = var.subnet_az_1b
-#   map_public_ip_on_launch = true
+    tags = {
+        Name = "private-${each.key}"
+    }
+}
 
-#   tags = {
-#     Name = var.public_tag
-#   }
-# }
 
-# resource "aws_subnet" "private_us_east_1a" {
-#   vpc_id            = aws_vpc.this.id
-#   cidr_block        = "10.0.2.0/24"
-#   availability_zone = var.subnet_az_1a
-
-#   tags = {
-#     Name = var.private_tag
-#   }
-# }
-
-# resource "aws_subnet" "private_us_east_1b" {
-#   vpc_id            = aws_vpc.this.id
-#   cidr_block        = "10.0.4.0/24"
-#   availability_zone = var.subnet_az_1b
-
-#   tags = {
-#     Name = var.private_tag
-#   }
-# }
 
 # resource "aws_internet_gateway" "this" {
 #   vpc_id = aws_vpc.this.id

@@ -63,6 +63,9 @@ resource "aws_instance" "bastion" {
 
     tags = {
         Name = var.public_tag
+       #Subnet  = data.aws_subnet.public_subnet[count.index].tags["Name"]  
+       #Subnet  = var.public_subnet_ids[count.index].tags["Name"]
+       #how to add subnet name as a tag? 
     }
 }
 
@@ -99,6 +102,7 @@ resource "aws_instance" "app" {
     ami             = data.aws_ami.ubuntu.id
     instance_type   = var.app_ec2_instance_type
     vpc_security_group_ids = [aws_security_group.app.id]
+    key_name = var.aws_ec2_key # ok to have the same key as public instance?
 
     tags = {
         Name = var.private_tag

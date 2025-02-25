@@ -15,9 +15,3 @@ variable "subnet_az_1b" {
 }
 
 variable "s3_flow_logs" { type = string }
-
-# variable "nat_gateway_public" { type = string }
-# variable "nat_gateway_private" { type = string }
-variable "ec2_instance_type" { type = string }
-variable "ec2_security_group_name" { type = string }
-variable "ec2_security_group_description" { type = string }

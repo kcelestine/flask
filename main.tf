@@ -16,6 +16,7 @@ module "flask-ec2" {
   aws_ec2_key                    = "wp"
   public_tag                     = var.public_tag
   private_tag                    = var.private_tag
+  my_ip                          = var.my_ip
   #from vpc module
   vpc_id             = module.flask-vpc.vpc_id
   public_subnet_ids  = module.flask-vpc.public_subnet_ids

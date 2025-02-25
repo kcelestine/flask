@@ -4,6 +4,7 @@ variable "ec2_instance_type" { type = string }
 variable "aws_ec2_key" { type = string }
 variable "public_tag" { type = string }
 variable "private_tag" { type = string }
+variable "my_ip" { type = string }
 ## from vpc module
 variable "vpc_id" { type = string }
 variable "public_subnet_ids" { type = list(string) }

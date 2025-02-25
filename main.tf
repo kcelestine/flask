@@ -9,17 +9,17 @@ module "flask-vpc" {
 }
 
 module "flask-ec2" {
-  source                         = "./modules/ec2"
+  source                                 = "./modules/ec2"
   bastion_ec2_security_group_name        = var.bastion_ec2_security_group_name
   bastion_ec2_security_group_description = var.bastion_ec2_security_group_description
   bastion_ec2_instance_type              = var.bastion_ec2_instance_type
-  app_ec2_security_group_name        = var.app_ec2_security_group_name
-  app_ec2_security_group_description = var.app_ec2_security_group_description
-  app_ec2_instance_type              = var.app_ec2_instance_type
-  aws_ec2_key                    = "wp"
-  public_tag                     = var.public_tag
-  private_tag                    = var.private_tag
-  my_ip                          = var.my_ip
+  app_ec2_security_group_name            = var.app_ec2_security_group_name
+  app_ec2_security_group_description     = var.app_ec2_security_group_description
+  app_ec2_instance_type                  = var.app_ec2_instance_type
+  aws_ec2_key                            = "wp"
+  public_tag                             = var.public_tag
+  private_tag                            = var.private_tag
+  my_ip                                  = var.my_ip
   #from vpc module
   vpc_id             = module.flask-vpc.vpc_id
   public_subnet_ids  = module.flask-vpc.public_subnet_ids

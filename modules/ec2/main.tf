@@ -17,8 +17,8 @@ data "aws_ami" "ubuntu" {
 }
 
 resource "aws_security_group" "bastion" {
-  name        = var.ec2_security_group_name
-  description = var.ec2_security_group_description
+  name        = var.bastion_ec2_security_group_name
+  description = var.bastion_ec2_security_group_description
   vpc_id     = var.vpc_id
 }
 
@@ -56,10 +56,16 @@ resource "aws_instance" "bastion" {
     count          = length(var.public_subnet_ids)
     subnet_id = var.public_subnet_ids[count.index]
     ami             = data.aws_ami.ubuntu.id
-    instance_type   = var.ec2_instance_type
+    instance_type   = var.bastion_ec2_instance_type
     vpc_security_group_ids = [aws_security_group.bastion.id]
 
     tags = {
         Name = var.public_tag
     }
+}
+
+resource "aws_security_group" "app" {
+  name        = var.app_ec2_security_group_name
+  description = var.app_ec2_security_group_description
+  vpc_id     = var.vpc_id
 }

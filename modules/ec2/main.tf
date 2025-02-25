@@ -34,7 +34,8 @@ resource "aws_vpc_security_group_ingress_rule" "bastion_http" {
 resource "aws_vpc_security_group_ingress_rule" "bastion_ssh" {
   security_group_id = aws_security_group.bastion.id
 
-  cidr_ipv4   = "0.0.0.0/0"
+  #cidr_ipv4   = "0.0.0.0/0"
+  cidr_ipv4   = var.my_ip
   ip_protocol = "tcp"
   from_port   = 22
   to_port     = 22

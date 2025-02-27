@@ -103,7 +103,7 @@ resource "aws_instance" "app" {
     instance_type   = var.app_ec2_instance_type
     vpc_security_group_ids = [aws_security_group.app.id]
     key_name = var.aws_ec2_key # ok to have the same key as public instance?
-
+    user_data = file("install-flask-app.sh")
     tags = {
         Name = var.private_tag
     }

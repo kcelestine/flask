@@ -41,13 +41,48 @@ resource "aws_vpc_security_group_ingress_rule" "bastion_ssh" {
     to_port     = 22
 }
 
+resource "aws_vpc_security_group_egress_rule" "bastion_ping" {
+    security_group_id = aws_security_group.bastion.id
+    cidr_ipv4   = "0.0.0.0/0"
+    ip_protocol = "icmp"
+    from_port   = -1  # -1 allows all ICMP types
+    to_port     = -1  # -1 allows all ICMP types
+}
+
+resource "aws_vpc_security_group_egress_rule" "bastion_https" {
+    security_group_id = aws_security_group.bastion.id
+    cidr_ipv4        = "0.0.0.0/0"
+    ip_protocol      = "tcp"
+    from_port        = 443
+    to_port          = 443
+}
+
 resource "aws_vpc_security_group_egress_rule" "bastion" {
     security_group_id = aws_security_group.bastion.id
 
     cidr_ipv4   = "0.0.0.0/0"
     ip_protocol = "tcp"
-    from_port   = 0
-    to_port     = 0
+    from_port   = 80
+    to_port     = 80
+}
+
+# remove from bastion ???
+resource "aws_vpc_security_group_egress_rule" "bastion_python_outbound" {
+    security_group_id = aws_security_group.bastion.id
+
+    cidr_ipv4   = "0.0.0.0/0"
+    ip_protocol = "tcp"
+    from_port   = 5000
+    to_port     = 5000
+}
+
+resource "aws_vpc_security_group_ingress_rule" "bastion_python_inbound" {
+    security_group_id = aws_security_group.bastion.id
+
+    cidr_ipv4   = "0.0.0.0/0"
+    ip_protocol = "tcp"
+    from_port   = 5000
+    to_port     = 5000
 }
 
 # Bastion Host Configuration
@@ -60,7 +95,7 @@ resource "aws_instance" "bastion" {
     instance_type   = var.bastion_ec2_instance_type
     vpc_security_group_ids = [aws_security_group.bastion.id]
     key_name = var.aws_ec2_key
-
+    user_data = file("install-flask-app.sh") #remove from bastion
     tags = {
         Name = var.public_tag
        #Subnet  = data.aws_subnet.public_subnet[count.index].tags["Name"]  
@@ -97,13 +132,13 @@ resource "aws_vpc_security_group_egress_rule" "allow_outbound_to_nat" {
 resource "aws_instance" "app" {
     #for_each = toset(var.public_subnet_ids)
     #subnet_id      = each.value
-    count          = length(var.private_subnet_ids)
-    subnet_id = var.private_subnet_ids[count.index]
+    count          = length(var.private_subnet_ids_ec2)
+    subnet_id = var.private_subnet_ids_ec2[count.index]
     ami             = data.aws_ami.ubuntu.id
     instance_type   = var.app_ec2_instance_type
     vpc_security_group_ids = [aws_security_group.app.id]
     key_name = var.aws_ec2_key # ok to have the same key as public instance?
-    user_data = file("install-flask-app.sh")
+    #user_data = file("install-flask-app.sh")
     tags = {
         Name = var.private_tag
     }

@@ -11,4 +11,5 @@ variable "my_ip" { type = string }
 ## from vpc module
 variable "vpc_id" { type = string }
 variable "public_subnet_ids" { type = list(string) }
-variable "private_subnet_ids" { type = list(string) }
+variable "private_subnet_ids_ec2" { type = list(string) }
+#variable "private_subnet_ids_rds" { type = list(string) }

@@ -6,4 +6,6 @@ provider "aws" {
       Project = "TERRAFORM"
     }
   }
+
+  profile = "default"
 }

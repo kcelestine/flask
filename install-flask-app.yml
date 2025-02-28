@@ -1,0 +1,102 @@
+---
+- name: Install Python 2.7.18 and Flask application
+  hosts: all
+  # gather_facts: no
+  become: yes
+  # tasks:
+  #   # Install dependencies for building Python
+  #   - name: Ensure dependencies are installed (for building Python)
+  #     apt:
+  #       name:
+  #         - apache2
+  #         # - gcc
+  #         # - make
+  #         # - zlib1g-dev
+  #         # - libbz2-dev
+  #         # - libssl-dev
+  #         # - libncurses5-dev
+  #         # - libsqlite3-dev
+  #         # - readline-dev
+  #         # - tk-dev
+  #         # - libgdbm-dev
+  #         # - libnss3-dev
+  #         # - libffi-dev
+  #       state: present
+  #       update_cache: yes
+
+    # # Download Python 2.7.18 source tarball
+    # - name: Download Python 2.7.18 source tarball
+    #   get_url:
+    #     url: "https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz"
+    #     dest: "/tmp/Python-2.7.18.tgz"
+    #     mode: '0644'
+
+    # # Extract Python 2.7.18 tarball
+    # - name: Extract Python 2.7.18 tarball
+    #   unarchive:
+    #     src: "/tmp/Python-2.7.18.tgz"
+    #     dest: "/tmp/"
+    #     remote_src: yes
+
+    # # Compile and install Python 2.7.18
+    # - name: Configure Python 2.7.18
+    #   command: "./configure --prefix=/usr/local"
+    #   args:
+    #     chdir: "/tmp/Python-2.7.18"
+    #   creates: "/tmp/Python-2.7.18/Makefile"  # Only run if Makefile doesn't exist
+
+    # - name: Compile Python 2.7.18
+    #   command: "make"
+    #   args:
+    #     chdir: "/tmp/Python-2.7.18"
+    #   creates: "/usr/local/bin/python2.7"  # Only run if python2.7 doesn't exist
+
+    # - name: Install Python 2.7.18
+    #   command: "make install"
+    #   args:
+    #     chdir: "/tmp/Python-2.7.18"
+    #   creates: "/usr/local/bin/python2.7"  # Only run if python2.7 doesn't exist
+
+    # # Clean up Python source files
+    # - name: Clean up Python source files
+    #   file:
+    #     path: "/tmp/Python-2.7.18"
+    #     state: absent
+
+    # # Verify Python 2.7.18 installation
+    # - name: Verify Python 2.7.18 installation
+    #   command: "/usr/local/bin/python2.7 --version"
+    #   register: python_version
+
+    # - debug:
+    #     msg: "Python version installed: {{ python_version.stdout }}"
+
+    # # Install pip for Python 2.7
+    # - name: Install pip for Python 2.7
+    #   command: "/usr/local/bin/python2.7 -m ensurepip --upgrade"
+    #   creates: "/usr/local/bin/pip2.7"
+
+    # # Create a Python virtual environment for Flask
+    # - name: Create a Python virtual environment for Flask
+    #   command: "/usr/local/bin/python2.7 -m virtualenv /opt/flask-app-env"
+    #   creates: "/opt/flask-app-env/bin/activate"  # Prevents creating if it already exists
+
+    # # Install Flask into the virtual environment
+    # - name: Install Flask into the virtual environment
+    #   command: "/opt/flask-app-env/bin/pip install Flask"
+    #   environment:
+    #     VIRTUAL_ENV: "/opt/flask-app-env"
+    #     PATH: "/opt/flask-app-env/bin:{{ ansible_env.PATH }}"
+
+    # # Verify Flask installation
+    # - name: Verify Flask installation
+    #   command: "/opt/flask-app-env/bin/python -c 'import flask; print(flask.__version__)'"
+    #   register: flask_version
+
+    # - debug:
+    #     msg: "Flask version installed: {{ flask_version.stdout }}"
+
+    # - name: Install Nginx
+    #   apt:
+    #     name: nginx
+    #     state: present

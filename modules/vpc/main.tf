@@ -71,8 +71,8 @@
     }
 
     resource "aws_nat_gateway" "this" {
-    for_each      = aws_subnet.private_ec2
-    subnet_id     = aws_subnet.private_ec2[each.key].id
+    for_each      = aws_subnet.public
+    subnet_id     = aws_subnet.public[each.key].id
     allocation_id = aws_eip.public[each.key].id
     }
 

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# install mysql
+sudo apt install mysql-client-core-8.0
+
+
 # Update the system and install required dependencies
 sudo apt-get update -y
 sudo apt-get install -y build-essential gcc make zlib1g-dev libbz2-dev \

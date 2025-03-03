@@ -49,4 +49,5 @@ module "flask-rds" {
     private_subnet_ids_rds = module.flask-vpc.private_subnet_ids_rds
     #from ec2 module
     bastion_sg_id = module.flask-ec2.bastion_sg_id
+    app_sg_id = module.flask-ec2.app_sg_id
 }

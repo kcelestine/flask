@@ -12,6 +12,7 @@
 
     resource "aws_subnet" "public" {
     #for_each = { for idx, az in slice(data.aws_availability_zones.available.names, 0, length(data.aws_availability_zones.available.names)) : az => idx }
+    #for_each = toset(data.aws_availability_zones.available.names)
         for_each = { for idx, az in slice(data.aws_availability_zones.available.names, 0, var.num_azs) : az => idx }
 
         vpc_id                  = aws_vpc.this.id

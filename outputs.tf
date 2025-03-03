@@ -7,6 +7,10 @@ output "bastion_sg_id" {
     value = module.flask-ec2.bastion_sg_id
 }
 
+output "app_sg_id" {
+    value = module.flask-ec2.app_sg_id
+}
+
 # output "vpc_id" {
 #   value = module.flask-vpc.vpc_id
 # }

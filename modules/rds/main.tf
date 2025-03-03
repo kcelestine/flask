@@ -22,14 +22,14 @@ resource "aws_security_group" "rds" {
     vpc_id     = var.vpc_id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "rds_mysql" {
-    security_group_id = aws_security_group.rds.id
+  resource "aws_vpc_security_group_ingress_rule" "rds_mysql" {
+      security_group_id = aws_security_group.rds.id
 
-    from_port   = 3306
-    to_port     = 3306
-    ip_protocol = "tcp"
-    referenced_security_group_id = var.bastion_sg_id  # Allow traffic from Bastion Host
-}
+      from_port   = 3306
+      to_port     = 3306
+      ip_protocol = "tcp"
+      referenced_security_group_id = var.app_sg_id  # Allow traffic from Bastion Host
+  }
 
 resource "aws_vpc_security_group_egress_rule" "rds_outbund" {
     security_group_id = aws_security_group.rds.id
@@ -44,7 +44,7 @@ resource "aws_db_instance" "this" {
   instance_class         = var.rds_instance_type
   allocated_storage      = 20
   storage_type           = "gp2"
-  username               = "admin"
+  username               = "admin" # change to variable
   password               = var.db_pass
   db_name                = var.rds_db_name
   skip_final_snapshot    = true

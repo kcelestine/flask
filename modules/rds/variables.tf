@@ -12,3 +12,4 @@ variable "private_subnet_group_data" { type = string}
 
 # from ec2 module
 variable "bastion_sg_id" { type = string }
+variable "app_sg_id" { type = string }

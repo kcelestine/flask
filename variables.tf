@@ -33,3 +33,4 @@ variable "rds_db_name" { type = string }
 variable "private_subnet_group_data" { type = string }
 variable "my_ip" { type = string }
 variable "bastion_sg_id" { type = string }
+variable "app_sg_id" { type = string }

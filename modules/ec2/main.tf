@@ -41,7 +41,7 @@ resource "aws_vpc_security_group_ingress_rule" "bastion_ssh" {
     to_port     = 22
 }
 
-resource "aws_vpc_security_group_egress_rule" "bastion_ping" {
+resource "aws_vpc_security_group_ingress_rule" "bastion_ping" {
     security_group_id = aws_security_group.bastion.id
     cidr_ipv4   = "0.0.0.0/0"
     ip_protocol = "icmp"
@@ -49,7 +49,7 @@ resource "aws_vpc_security_group_egress_rule" "bastion_ping" {
     to_port     = -1  # -1 allows all ICMP types
 }
 
-resource "aws_vpc_security_group_egress_rule" "bastion_https" {
+resource "aws_vpc_security_group_ingress_rule" "bastion_https" {
     security_group_id = aws_security_group.bastion.id
     cidr_ipv4        = "0.0.0.0/0"
     ip_protocol      = "tcp"
@@ -61,20 +61,19 @@ resource "aws_vpc_security_group_egress_rule" "bastion" {
     security_group_id = aws_security_group.bastion.id
 
     cidr_ipv4   = "0.0.0.0/0"
-    ip_protocol = "tcp"
-    from_port   = 80
-    to_port     = 80
+    ip_protocol = -1
+
 }
 
-# remove from bastion ???
-resource "aws_vpc_security_group_egress_rule" "bastion_python_outbound" {
-    security_group_id = aws_security_group.bastion.id
+# # remove from bastion ???
+# resource "aws_vpc_security_group_egress_rule" "bastion_python_outbound" {
+#     security_group_id = aws_security_group.bastion.id
 
-    cidr_ipv4   = "0.0.0.0/0"
-    ip_protocol = "tcp"
-    from_port   = 5000
-    to_port     = 5000
-}
+#     cidr_ipv4   = "0.0.0.0/0"
+#     ip_protocol = "tcp"
+#     from_port   = 5000
+#     to_port     = 5000
+# }
 
 resource "aws_vpc_security_group_ingress_rule" "bastion_python_inbound" {
     security_group_id = aws_security_group.bastion.id
@@ -95,7 +94,6 @@ resource "aws_instance" "bastion" {
     instance_type   = var.bastion_ec2_instance_type
     vpc_security_group_ids = [aws_security_group.bastion.id]
     key_name = var.aws_ec2_key
-    user_data = file("install-flask-app.sh") #remove from bastion
     tags = {
         Name = var.public_tag
        #Subnet  = data.aws_subnet.public_subnet[count.index].tags["Name"]  
@@ -116,16 +114,30 @@ resource "aws_vpc_security_group_ingress_rule" "allow_ssh_from_bastion" {
     from_port   = 22
     to_port     = 22
     ip_protocol = "tcp"
-    #cidr_ipv4 = [""]  # No direct SSH access from the public internet -- by leaving it out, is it implied no public access?
+    referenced_security_group_id = aws_security_group.bastion.id  # Allow traffic from Bastion Host
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_ssh_from_app" {
+    security_group_id = aws_security_group.app.id
+
+    from_port   = 22
+    to_port     = 22
+    ip_protocol = "tcp"
+    referenced_security_group_id = aws_security_group.app.id  # Allow traffic from Bastion Host
+}
+
+resource "aws_vpc_security_group_ingress_rule" "allow_flask_app" {
+    security_group_id = aws_security_group.app.id
+
+    from_port   = 5000
+    to_port     = 5000
+    ip_protocol = "tcp"
     referenced_security_group_id = aws_security_group.bastion.id  # Allow traffic from Bastion Host
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_outbound_to_nat" {
     security_group_id = aws_security_group.app.id
-
-    from_port   = 0
-    to_port     = 0
-    ip_protocol =  "tcp" # Allow all outbound traffic
+    ip_protocol =  -1 # Allow all outbound traffic
     cidr_ipv4 = "0.0.0.0/0"  # NAT Gateway handles outbound internet access aaccording to route table
 }
 
@@ -137,9 +149,36 @@ resource "aws_instance" "app" {
     ami             = data.aws_ami.ubuntu.id
     instance_type   = var.app_ec2_instance_type
     vpc_security_group_ids = [aws_security_group.app.id]
-    key_name = var.aws_ec2_key # ok to have the same key as public instance?
-    #user_data = file("install-flask-app.sh")
+    key_name = var.aws_ec2_key
+    user_data = file("install-flask-app.sh")
     tags = {
         Name = var.private_tag
     }
+}
+
+resource "aws_security_group" "alb" {
+  name        = var.alb_security_group_name
+  description = var.alb_security_group_description
+  vpc_id      = var.vpc_id
+
+  egress {
+    cidr_blocks = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }

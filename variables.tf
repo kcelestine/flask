@@ -21,6 +21,8 @@ variable "app_ec2_security_group_name" { type = string }
 variable "app_ec2_security_group_description" { type = string }
 variable "app_ec2_instance_type" { type = string }
 variable "aws_ec2_key" { type = string }
+variable "alb_security_group_name" { type = string }
+variable "alb_security_group_description" { type = string }
 
 # ## RDS module ##
 variable "rds_security_group_name" { type = string }
@@ -30,3 +32,4 @@ variable "db_pass" { type = string }
 variable "rds_db_name" { type = string }
 variable "private_subnet_group_data" { type = string }
 variable "my_ip" { type = string }
+variable "bastion_sg_id" { type = string }

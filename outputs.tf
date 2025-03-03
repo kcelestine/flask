@@ -3,6 +3,10 @@ output "ec2_global_ips" {
   value       = module.flask-ec2.ec2_global_ips
 }
 
+output "bastion_sg_id" {
+    value = module.flask-ec2.bastion_sg_id
+}
+
 # output "vpc_id" {
 #   value = module.flask-vpc.vpc_id
 # }

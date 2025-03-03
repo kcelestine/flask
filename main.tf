@@ -20,6 +20,8 @@ module "flask-ec2" {
   public_tag                             = var.public_tag
   private_tag                            = var.private_tag
   my_ip                                  = var.my_ip
+  alb_security_group_name = var.alb_security_group_name
+  alb_security_group_description = var.alb_security_group_description
   #from vpc module
   vpc_id             = module.flask-vpc.vpc_id
   public_subnet_ids  = module.flask-vpc.public_subnet_ids
@@ -31,7 +33,7 @@ module "flask-vpc-flow-logs" {
   s3_flow_logs = var.s3_flow_logs
   vpc_id       = module.flask-vpc.vpc_id
 }
-# permanently delete
+
 
 module "flask-rds" {
     source                                 = "./modules/rds"
@@ -45,4 +47,6 @@ module "flask-rds" {
     #from vpc module
     vpc_id             = module.flask-vpc.vpc_id
     private_subnet_ids_rds = module.flask-vpc.private_subnet_ids_rds
+    #from ec2 module
+    bastion_sg_id = module.flask-ec2.bastion_sg_id
 }

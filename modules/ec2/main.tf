@@ -132,7 +132,7 @@ resource "aws_vpc_security_group_ingress_rule" "allow_flask_app" {
     from_port   = 5000
     to_port     = 5000
     ip_protocol = "tcp"
-    referenced_security_group_id = aws_security_group.bastion.id  # Allow traffic from Bastion Host
+    referenced_security_group_id = aws_security_group.alb.id  # Allow traffic from Bastion Host
 }
 
 resource "aws_vpc_security_group_egress_rule" "allow_outbound_to_nat" {
@@ -160,25 +160,80 @@ resource "aws_security_group" "alb" {
   name        = var.alb_security_group_name
   description = var.alb_security_group_description
   vpc_id      = var.vpc_id
+}
 
-  egress {
-    cidr_blocks = ["0.0.0.0/0"]
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-  }
+resource "aws_vpc_security_group_ingress_rule" "allow_http_alb" {
+    security_group_id = aws_security_group.alb.id
 
-  ingress {
     from_port   = 80
     to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+    ip_protocol = "tcp"
+    cidr_ipv4   = "0.0.0.0/0"
+}
 
-  ingress {
+resource "aws_vpc_security_group_ingress_rule" "allow_https_alb" {
+    security_group_id = aws_security_group.alb.id
+
     from_port   = 443
     to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+    ip_protocol = "tcp"
+    cidr_ipv4   = "0.0.0.0/0"
+}
+
+resource "aws_vpc_security_group_egress_rule" "alb_outbound" {
+    security_group_id = aws_security_group.alb.id
+    ip_protocol =  -1 # Allow all outbound traffic
+    cidr_ipv4 = "0.0.0.0/0"
+}
+
+resource "aws_lb" "this" {
+    name               = "flask-alb"
+    internal           = false
+    load_balancer_type = "application"
+    security_groups    = [aws_security_group.alb.id]
+    subnets            = var.public_subnet_ids  # Subnets for the ALB
+    enable_deletion_protection = false  # Optional: Set to true for extra protection
+
+    tags = {
+        Name = var.public_tag
+    }
+}
+
+resource "aws_lb_target_group" "this" {
+    name     = "app-target-group"
+    port     = 5000
+    protocol = "HTTP"
+    vpc_id   = var.vpc_id  
+
+    health_check {
+        interval            = 30
+        path                = "/"
+        port                = 5000
+        protocol            = "HTTP"
+        timeout             = 5
+        unhealthy_threshold = 3
+        healthy_threshold   = 3
+    }
+
+    tags = {
+        Name = "AppTargetGroup"
+    }
+}
+
+resource "aws_lb_target_group_attachment" "app_target_group_attachment" {
+    count             = length(aws_instance.app)
+    target_id         = aws_instance.app[count.index].id
+    target_group_arn = aws_lb_target_group.this.arn
+    port             = 5000
+}
+
+resource "aws_lb_listener" "app_listener" {
+    load_balancer_arn = aws_lb.this.arn  # Your ALB ARN
+    port              = 80
+    protocol          = "HTTP"
+
+    default_action {
+        type             = "forward"
+        target_group_arn = aws_lb_target_group.this.arn
+    }
 }

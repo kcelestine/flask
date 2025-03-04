@@ -116,3 +116,4 @@
     }
 
 
+# tp -var="app_sg_id=o" -var="bastion_sg_id=o"

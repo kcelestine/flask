@@ -1,4 +1,5 @@
 
+
 # flask
 Use terraform to deploy a flask app. This code deploys a flask app to your AWS account and uses S3 with DynamoDB for remote backend.
 
@@ -28,42 +29,56 @@ Use terraform to deploy a flask app. This code deploys a flask app to your AWS a
     
 
  2. Create an S3 bucket in your amazon account to use for storing state files.
-	 Ensure the bucket settings are as follows:
+	 Add the following bucket settings]:
 	 - Block all public access: True 
 	 - Enable bucket versioning: True 
 	 - Enable default encryption: True
 
-	Ensure the bucket policy includes the following:
-	 - something  
-	 - something  
-	 - something
-
  3. Create a DynamoDB table for state locking.
-	 Ensure the policy includes the following:
-	 - something  
-	 - something  
-	 - something
-	 
 	Ensure the partition key is "LockID".
- 4. Clone this repo locally
- 5. Run `cd flask`
- 6. Edit the backend.tf to include your bucket name and table name
- 7. Run `terraform init`
- 8. Run `terraform apply --auto-approve`
+	
+ 4. Create ec2 key file (referenced in terraform.tfvars file to create instances)
+ 5. Create ACM certificate with a domain name you own
+ 6. Clone this repo locally
+ 7. Run `cd flask`
+ 8. Edit the backend.tf to include your bucket name and table name
+ 9. Create terraform.tfvars file
+```
+# global vars
+public_tag =  "dev-flask-public"
+private_tag =  "dev-flask-private"
 
-NOTE: This code is currently in sync with the Phase 1 diagram.
+# vpc vars
+vpc_name =  "dev-flask-vpc"
+s3_flow_logs =  #name to give s3 bucket for vpc-flow-logs
+vpc_cidr =  "10.0.0.0/16"
+num_azs =  2
+
+# ec2 vars
+app_ec2_instance_type =  "t2.micro"
+app_ec2_security_group_name =  "dev-flask-sg-app-private"
+app_ec2_security_group_description =  "Security group for flask application server EC2 instance"
+bastion_ec2_instance_type =  "t2.micro"
+bastion_ec2_security_group_name =  "dev-flask-sg-bastion-public"
+bastion_ec2_security_group_description =  "Security group for flask bastion host EC2 instance"
+my_ip =  "0.0.0.0/32" # your local ip
+aws_ec2_key =  "" # name of key file created in step 4 - do not include .pem
+alb_security_group_name =  "dev-flask-alb"
+alb_security_group_description =  "ALB for flask app private instances"
+alb_tg_name =  "dev-flask-tg"
+domain_name =  "*.yourdomain.com" #domain name used when creating certificate in step 5.
+
+# rds vars
+db_admin =  "admin"  # use aws secrets manager
+rds_db_name =  ""
+rds_instance_type =  "db.t3.micro"
+rds_security_group_description =  "Security group for flask RDS instance"
+rds_security_group_name =  "dev-flask-sg-rds"
+private_subnet_group_data =  "dev-flask-subnet-group"
+```
+ 10. Run `terraform init`
+ 11. Run `terraform apply --auto-approve`
 
 # Architecture Diagrams
-The following diagrams show the gradual expansion of the application. In Phase 1, all of the basic networking to create a VPC is setup. There are public and private subnets across 2 availability zones. In Phase 2, there is a NAT gateway, security groups and VPC Flow logs.
+![phase7 drawio](https://github.com/user-attachments/assets/faa60bd4-a5b7-4880-bc20-1ba27d3feae7)
 
-## Phase 1 - VPC
-![phase1 (1)](https://github.com/user-attachments/assets/4943765a-65ee-4597-ba07-09dfcf5cd4c1)
-
-## Phase 2 - Networking
-![phase2-flask drawio](https://github.com/user-attachments/assets/ba59f6a1-e373-49a5-b56c-8a2a1f355107)
-
-## Phase 3 - Compute
-![phase3-flask drawio](https://github.com/user-attachments/assets/871ae544-1e67-4845-a271-fae259cc6fb8)
-
-## Phase 4 - RDS
-![phase4 (4)]()

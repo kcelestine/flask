@@ -69,7 +69,7 @@ alb_tg_name =  "dev-flask-tg"
 domain_name =  "*.yourdomain.com" #domain name used when creating certificate in step 5.
 
 # rds vars
-db_admin =  "admin"  # use aws secrets manager
+db_admin =  ""  # use aws secrets manager
 rds_db_name =  ""
 rds_instance_type =  "db.t3.micro"
 rds_security_group_description =  "Security group for flask RDS instance"

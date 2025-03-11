@@ -20,11 +20,13 @@ module "flask-ec2" {
   public_tag                             = var.public_tag
   private_tag                            = var.private_tag
   my_ip                                  = var.my_ip
-  alb_security_group_name = var.alb_security_group_name
-  alb_security_group_description = var.alb_security_group_description
+  alb_security_group_name                = var.alb_security_group_name
+  alb_security_group_description         = var.alb_security_group_description
+  alb_tg_name                            = var.alb_tg_name
+  domain_name = var.domain_name
   #from vpc module
-  vpc_id             = module.flask-vpc.vpc_id
-  public_subnet_ids  = module.flask-vpc.public_subnet_ids
+  vpc_id                 = module.flask-vpc.vpc_id
+  public_subnet_ids      = module.flask-vpc.public_subnet_ids
   private_subnet_ids_ec2 = module.flask-vpc.private_subnet_ids_ec2
 }
 
@@ -36,18 +38,17 @@ module "flask-vpc-flow-logs" {
 
 
 module "flask-rds" {
-    source                                 = "./modules/rds"
-    db_pass = var.db_pass
-    rds_db_name = var.rds_db_name
-    rds_instance_type = var.rds_instance_type
-    rds_security_group_name = var.rds_security_group_name
-    rds_security_group_description = var.rds_security_group_description
-    private_tag                            = var.private_tag
-    private_subnet_group_data = var.private_subnet_group_data
-    #from vpc module
-    vpc_id             = module.flask-vpc.vpc_id
-    private_subnet_ids_rds = module.flask-vpc.private_subnet_ids_rds
-    #from ec2 module
-    bastion_sg_id = module.flask-ec2.bastion_sg_id
-    app_sg_id = module.flask-ec2.app_sg_id
+  source                         = "./modules/rds"
+  db_admin                        = var.db_admin
+  rds_db_name                    = var.rds_db_name
+  rds_instance_type              = var.rds_instance_type
+  rds_security_group_name        = var.rds_security_group_name
+  rds_security_group_description = var.rds_security_group_description
+  private_tag                    = var.private_tag
+  private_subnet_group_data      = var.private_subnet_group_data
+  #from vpc module
+  vpc_id                 = module.flask-vpc.vpc_id
+  private_subnet_ids_rds = module.flask-vpc.private_subnet_ids_rds
+  #from ec2 modules
+  app_sg_id = module.flask-ec2.app_sg_id
 }

@@ -4,12 +4,17 @@ output "ec2_global_ips" {
 }
 
 output "bastion_sg_id" {
-    value = module.flask-ec2.bastion_sg_id
+  value = module.flask-ec2.bastion_sg_id
 }
 
 output "app_sg_id" {
-    value = module.flask-ec2.app_sg_id
+  value = module.flask-ec2.app_sg_id
 }
+output "load_balancer_dns_name" {
+  value = module.flask-ec2.load_balancer_dns_name
+}
+
+
 
 # output "vpc_id" {
 #   value = module.flask-vpc.vpc_id

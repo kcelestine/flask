@@ -10,6 +10,13 @@ sudo apt-get install -y build-essential gcc make zlib1g-dev libbz2-dev \
 libssl-dev libncurses5-dev libsqlite3-dev libreadline-dev tk-dev \
 libgdbm-dev libnss3-dev libffi-dev git
 
+# Install AWS CLI
+apt-get install -y unzip curl
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+# aws --version
+
 # Install Python 2.7.18 from source
 cd /tmp
 wget https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
@@ -20,7 +27,7 @@ sudo make
 sudo make install
 
 # Check Python version to verify installation
-/usr/local/bin/python2.7 --version
+#/usr/local/bin/python2.7 --version
 
 # Set up virtual environment with Python 2.7
 cd /home/ubuntu
@@ -39,7 +46,7 @@ source venv/bin/activate
 
 # Install dependencies from requirements.txt
 pip install -r requirements.txt
-
+pip install mysqlclient
 # # Set environment variables for Flask app
 # export FLASK_APP=app.py
 # export FLASK_ENV=production

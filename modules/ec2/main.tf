@@ -5,7 +5,7 @@ data "aws_ami" "ubuntu" {
 
     filter {
         name   = "name"
-        values = ["*ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+        values = ["ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-*"]
     }
 
     filter {
@@ -31,7 +31,7 @@ resource "aws_vpc_security_group_ingress_rule" "bastion_http" {
     to_port     = 80
 }
 
-resource "aws_vpc_security_group_ingress_rule" "bastion_ssh" {
+resource "aws_vpc_security_group_ingress_rule" "bastion_ssh_from_my_ip" {
     security_group_id = aws_security_group.bastion.id
 
     #cidr_ipv4   = "0.0.0.0/0"
@@ -57,7 +57,7 @@ resource "aws_vpc_security_group_ingress_rule" "bastion_https" {
     to_port          = 443
 }
 
-resource "aws_vpc_security_group_egress_rule" "bastion" {
+resource "aws_vpc_security_group_egress_rule" "bastion_outbound" {
     security_group_id = aws_security_group.bastion.id
 
     cidr_ipv4   = "0.0.0.0/0"
@@ -75,14 +75,14 @@ resource "aws_vpc_security_group_egress_rule" "bastion" {
 #     to_port     = 5000
 # }
 
-resource "aws_vpc_security_group_ingress_rule" "bastion_python_inbound" {
-    security_group_id = aws_security_group.bastion.id
+# resource "aws_vpc_security_group_ingress_rule" "bastion_python_inbound" {
+#     security_group_id = aws_security_group.bastion.id
 
-    cidr_ipv4   = "0.0.0.0/0"
-    ip_protocol = "tcp"
-    from_port   = 5000
-    to_port     = 5000
-}
+#     cidr_ipv4   = "0.0.0.0/0"
+#     ip_protocol = "tcp"
+#     from_port   = 5000
+#     to_port     = 5000
+# }
 
 # Bastion Host Configuration
 resource "aws_instance" "bastion" {
@@ -108,7 +108,7 @@ resource "aws_security_group" "app" {
     vpc_id      = var.vpc_id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_ssh_from_bastion" {
+resource "aws_vpc_security_group_ingress_rule" "app_ssh_from_bastion" {
     security_group_id = aws_security_group.app.id
 
     from_port   = 22
@@ -117,33 +117,31 @@ resource "aws_vpc_security_group_ingress_rule" "allow_ssh_from_bastion" {
     referenced_security_group_id = aws_security_group.bastion.id  # Allow traffic from Bastion Host
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_ssh_from_app" {
+resource "aws_vpc_security_group_ingress_rule" "app_ssh_from_app" {
     security_group_id = aws_security_group.app.id
 
     from_port   = 22
     to_port     = 22
     ip_protocol = "tcp"
-    referenced_security_group_id = aws_security_group.app.id  # Allow traffic from Bastion Host
+    referenced_security_group_id = aws_security_group.app.id # allow ssh from private ec2 in different subnets
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_flask_app" {
+resource "aws_vpc_security_group_ingress_rule" "app_flask_from_alb" {
     security_group_id = aws_security_group.app.id
 
     from_port   = 5000
     to_port     = 5000
     ip_protocol = "tcp"
-    referenced_security_group_id = aws_security_group.alb.id  # Allow traffic from Bastion Host
+    referenced_security_group_id = aws_security_group.alb.id  # Allow traffic from alb
 }
 
-resource "aws_vpc_security_group_egress_rule" "allow_outbound_to_nat" {
+resource "aws_vpc_security_group_egress_rule" "app_outbound_to_nat" {
     security_group_id = aws_security_group.app.id
     ip_protocol =  -1 # Allow all outbound traffic
     cidr_ipv4 = "0.0.0.0/0"  # NAT Gateway handles outbound internet access aaccording to route table
 }
 
 resource "aws_instance" "app" {
-    #for_each = toset(var.public_subnet_ids)
-    #subnet_id      = each.value
     count          = length(var.private_subnet_ids_ec2)
     subnet_id = var.private_subnet_ids_ec2[count.index]
     ami             = data.aws_ami.ubuntu.id
@@ -162,7 +160,7 @@ resource "aws_security_group" "alb" {
   vpc_id      = var.vpc_id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "allow_http_alb" {
+resource "aws_vpc_security_group_ingress_rule" "allow_http_alb" { #should only allow 80 from app sg
     security_group_id = aws_security_group.alb.id
 
     from_port   = 80
@@ -200,7 +198,7 @@ resource "aws_lb" "this" {
 }
 
 resource "aws_lb_target_group" "this" {
-    name     = "app-target-group"
+    name     = var.alb_tg_name
     port     = 5000
     protocol = "HTTP"
     vpc_id   = var.vpc_id  
@@ -216,7 +214,7 @@ resource "aws_lb_target_group" "this" {
     }
 
     tags = {
-        Name = "AppTargetGroup"
+        Name = var.public_tag
     }
 }
 
@@ -227,8 +225,49 @@ resource "aws_lb_target_group_attachment" "app_target_group_attachment" {
     port             = 5000
 }
 
+data "aws_acm_certificate" "this" {
+    domain   = var.domain_name 
+    most_recent = true 
+    #status = "ISSUED"
+    # │   with module.flask-ec2.data.aws_acm_certificate.this,
+    # │   on modules/ec2/main.tf line 242, in data "aws_acm_certificate" "this":
+    # │  242:     status = "ISSUED"
+    # │ 
+    # │ Can't configure a value for "status": its value will be decided automatically based on the result of applying this configuration.
+    # ╵
+}
+
+resource "aws_lb_listener" "https" {
+    load_balancer_arn = aws_lb.this.arn
+    port              = 443
+    protocol          = "HTTPS"
+
+    # Use the certificate ARN from the ACM data source
+    certificate_arn   = data.aws_acm_certificate.this.arn
+
+    default_action {
+        type             = "forward"
+        target_group_arn = aws_lb_target_group.this.arn
+    }
+}
+
+# resource "aws_lb_listener" "http" {
+#     load_balancer_arn = aws_lb.this.arn
+#     port              = 80
+#     protocol          = "HTTP"
+
+#     default_action {
+#         type             = "fixed-response"
+#         fixed_response {
+#             content_type = "text/plain"
+#             status_code = 301
+#             message_body = "Moved Permanently"
+#         }
+#     }
+# }
+
 resource "aws_lb_listener" "app_listener" {
-    load_balancer_arn = aws_lb.this.arn  # Your ALB ARN
+    load_balancer_arn = aws_lb.this.arn 
     port              = 80
     protocol          = "HTTP"
 

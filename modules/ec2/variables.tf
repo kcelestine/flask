@@ -8,6 +8,8 @@ variable "aws_ec2_key" { type = string }
 variable "public_tag" { type = string }
 variable "private_tag" { type = string }
 variable "my_ip" { type = string }
+variable "alb_tg_name" { type = string }
+variable "domain_name" { type = string }
 ## from vpc module
 variable "vpc_id" { type = string }
 variable "public_subnet_ids" { type = list(string) }
